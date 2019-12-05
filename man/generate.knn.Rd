@@ -4,10 +4,12 @@
 \alias{generate.knn}
 \title{Generates a kNN graph}
 \usage{
-generate.knn(edges.complete.graph)
+generate.knn(edges.complete.graph, k.user)
 }
 \arguments{
 \item{edges.complete.graph}{A object of class "data.frame" with three columns (\emph{from}, \emph{to}, \emph{costs}) representing the edges costs of a complete graph.}
+
+\item{k.user}{A numeric value representing the number of nearest neighbor to consider to generate the \emph{k}NN graph.}
 }
 \value{
 A list with the elements
@@ -19,8 +21,9 @@ A list with the elements
 This function generates the \emph{k}-Nearest Neighbors (kNN) graph which is a subgraph contains edges between nodes if, and only if, they are one of the \emph{k} nearest neighbors considering the edges costs.
 }
 \details{
-During the generation of the kNN graph is automatically determined the \emph{k} value. It is obtained by the definition:
-\deqn{k = min{\lfloor \ln(|nodes.list|) \rfloor; min k |  kNN  is connected }}
+During its generation, the \emph{k} value is automatically determined by the definition:
+\deqn{k = min{\lfloor \ln(|nodes.list|) \rfloor; min k |  kNN  is connected; k.user }}
+If \emph{k.user} parameter is not provided, it is not considered by the definition.
 }
 \examples{
 
@@ -35,7 +38,7 @@ x <- matrix(runif(n*m, min = -5, max = 10), nrow=n, ncol=m)
 library("amap")
 d <- base::as.matrix(amap::Dist(x, method="euclidean"))
 
-##Generates complete graph (CG)
+##Generates complete graph (CG) without k.user parameter
 
 cg <- generate.complete.graph(1:nrow(x),d)
 
@@ -47,6 +50,17 @@ plot(knn$knn.graph,
 main=paste("kNN \\n k=", knn$k, sep=""))
 
 
+
+##Generates complete graph (CG) with k.user parameter
+
+cg <- generate.complete.graph(1:nrow(x),d)
+
+##Generates kNN graph
+knn <- generate.knn(cg, k.user=4)
+
+##Visualizing kNN graph
+plot(knn$knn.graph,
+main=paste("kNN \\n k=", knn$k, sep=""))
 }
 \author{
 Mario Inostroza-Ponta, Jorge Parraga-Alava, Pablo Moscato

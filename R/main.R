@@ -95,8 +95,10 @@ generate.complete.graph <-function(nodes.list, distance.matrix){
 #'
 #' @description This function generates the \emph{k}-Nearest Neighbors (kNN) graph which is a subgraph contains edges between nodes if, and only if, they are one of the \emph{k} nearest neighbors considering the edges costs.
 #' @param edges.complete.graph A object of class "data.frame" with three columns (\emph{from}, \emph{to}, \emph{costs}) representing the edges costs of a complete graph.
-#' @details During the generation of the kNN graph is automatically determined the \emph{k} value. It is obtained by the definition:
-#' \deqn{k = min{\lfloor \ln(|nodes.list|) \rfloor; min k |  kNN  is connected }}
+#' @param k.user A numeric value representing the number of nearest neighbor to consider to generate the \emph{k}NN graph.
+#' @details During its generation, the \emph{k} value is automatically determined by the definition:
+#' \deqn{k = min{\lfloor \ln(|nodes.list|) \rfloor; min k |  kNN  is connected; k.user }}
+#' If \emph{k.user} parameter is not provided, it is not considered by the definition.
 #' @return A list with the elements
 #' \item{edges.knn.graph}{A object of class "data.frame" with three columns (\emph{from}, \emph{to}, \emph{costs}) representing the edges costs forming the kNN graph.}
 #' \item{knn.graph}{A object of class "igraph" which is the \emph{k}-Nearest Neighbors (kNN) graph generated.}
@@ -115,7 +117,7 @@ generate.complete.graph <-function(nodes.list, distance.matrix){
 #' library("amap")
 #' d <- base::as.matrix(amap::Dist(x, method="euclidean"))
 #'
-#' ##Generates complete graph (CG)
+#' ##Generates complete graph (CG) without k.user parameter
 #'
 #' cg <- generate.complete.graph(1:nrow(x),d)
 #'
@@ -127,14 +129,26 @@ generate.complete.graph <-function(nodes.list, distance.matrix){
 #' main=paste("kNN \n k=", knn$k, sep=""))
 #'
 #'
+#'
+#' ##Generates complete graph (CG) with k.user parameter
+#'
+#' cg <- generate.complete.graph(1:nrow(x),d)
+#'
+#' ##Generates kNN graph
+#' knn <- generate.knn(cg, k.user=4)
+#'
+#' ##Visualizing kNN graph
+#' plot(knn$knn.graph,
+#' main=paste("kNN \n k=", knn$k, sep=""))
 #' @keywords graph
 #' @keywords knn
 #' @export
-generate.knn <- function(edges.complete.graph) {
+generate.knn <- function(edges.complete.graph, k.user) {
 
   grafo_knn=list()
   arista_vecinos_unidas=list()
   grafo_knn_conectado=vector()
+
 
 
   #n=length(unique(unname(unlist(edges.complete.graph[,1:2])))) #cuenta el numero total de nodos
@@ -148,85 +162,99 @@ generate.knn <- function(edges.complete.graph) {
   n <-length(nodos)
   #evaluo cada k desde 1 hasta n-1 para ver cual minimo k mantiene conectado al knn
 
-  k=1
+
+          k=1
+
+          while(k <=(n-1)){
+
+            #ordeno tabla de pares de aristas de acuerdo al costo, y convierto en factor cada nodo
+            aristas.ordenadas <- edges.complete.graph[order(edges.complete.graph$costs),]
+            aristas.ordenadas$from <- as.factor(aristas.ordenadas$from)
+            aristas.ordenadas$to <- as.factor(aristas.ordenadas$to)
+            #separo la tabla de pares de aristas por cada nodo. Como estan ordenadas por costos, selecciono los k nodos mas cercanos al nodo
+            #esto se aplica para nodos en from y luego para nodos en to
+            vecinos.nodos.from<-do.call(rbind, lapply(split(aristas.ordenadas,aristas.ordenadas$from), function(x) {return(x[1:k,])}))
+            vecinos.nodos.from<-stats::na.omit(vecinos.nodos.from)
+            vecinos.nodos.to<-do.call(rbind, lapply(split(aristas.ordenadas,aristas.ordenadas$to), function(x) {return(x[1:k,])}))
+            vecinos.nodos.to<-stats::na.omit(vecinos.nodos.to)
+            #ubicar como primer columna el to, luego cambiar nombre a columnas para que
+            #tenga mismos encabezados que vecinos.nodos.from y hacer poder usar el split
+            vecinos.nodos.to<-vecinos.nodos.to[,c(2,1,3)]
+            colnames(vecinos.nodos.to)<-c("from", "to", "costs")
+            #uno ambos resultados (from y to)
+            vecinos.nodos.ambos<-rbind(vecinos.nodos.from, vecinos.nodos.to)
+            #vuelvo a ordenar el par de aristas, pero ahora estan solo los mas cercanos desde from y desde to.
+            ambos.ordenados=vecinos.nodos.ambos[order(vecinos.nodos.ambos$costs),]
+            #separo la tabla para seleccionar solo los k mas cercanos a cada nodo
+            vecinos.final<-do.call(rbind, lapply(split(ambos.ordenados, ambos.ordenados$from), function(x) {return(x[1:k,])}))
+            vecinos.final<-stats::na.omit(vecinos.final)
 
 
-
-  while(k <=(n-1)){
-
-    #ordeno tabla de pares de aristas de acuerdo al costo, y convierto en factor cada nodo
-    aristas.ordenadas <- edges.complete.graph[order(edges.complete.graph$costs),]
-    aristas.ordenadas$from <- as.factor(aristas.ordenadas$from)
-    aristas.ordenadas$to <- as.factor(aristas.ordenadas$to)
-    #separo la tabla de pares de aristas por cada nodo. Como estan ordenadas por costos, selecciono los k nodos mas cercanos al nodo
-    #esto se aplica para nodos en from y luego para nodos en to
-    vecinos.nodos.from<-do.call(rbind, lapply(split(aristas.ordenadas,aristas.ordenadas$from), function(x) {return(x[1:k,])}))
-    vecinos.nodos.from<-stats::na.omit(vecinos.nodos.from)
-    vecinos.nodos.to<-do.call(rbind, lapply(split(aristas.ordenadas,aristas.ordenadas$to), function(x) {return(x[1:k,])}))
-    vecinos.nodos.to<-stats::na.omit(vecinos.nodos.to)
-    #ubicar como primer columna el to, luego cambiar nombre a columnas para que
-    #tenga mismos encabezados que vecinos.nodos.from y hacer poder usar el split
-    vecinos.nodos.to<-vecinos.nodos.to[,c(2,1,3)]
-    colnames(vecinos.nodos.to)<-c("from", "to", "costs")
-    #uno ambos resultados (from y to)
-    vecinos.nodos.ambos<-rbind(vecinos.nodos.from, vecinos.nodos.to)
-    #vuelvo a ordenar el par de aristas, pero ahora estan solo los mas cercanos desde from y desde to.
-    ambos.ordenados=vecinos.nodos.ambos[order(vecinos.nodos.ambos$costs),]
-    #separo la tabla para seleccionar solo los k mas cercanos a cada nodo
-    vecinos.final<-do.call(rbind, lapply(split(ambos.ordenados, ambos.ordenados$from), function(x) {return(x[1:k,])}))
-    vecinos.final<-stats::na.omit(vecinos.final)
+            #Eliminar filas repetidas tanto en from, to, cost
+            arista_vecinos_unidas[[k]]=vecinos.final[!duplicated(vecinos.final), ]
 
 
-    #Eliminar filas repetidas tanto en from, to, cost
-    arista_vecinos_unidas[[k]]=vecinos.final[!duplicated(vecinos.final), ]
+                  #creo el knn. Para cada caso de k.
+                  grafo_knn[[k]]=igraph::graph.data.frame(d = arista_vecinos_unidas[[k]][,1:2], directed = FALSE)
+                  #eliminar aristas tipo lazos (o sea 1-3 y 3-1 dejar solo 1)
+                  grafo_knn[[k]]=igraph::simplify(grafo_knn[[k]], remove.loops = TRUE, remove.multiple = FALSE)
+
+                  #determino si este k, produce un knn conectado
+                  grafo_knn_conectado[k]=igraph::is.connected(grafo_knn[[k]])
+
+                  #Si este k esta conectado entonces ya no evaluo mas los k ya q es el minimo k que conecta
+                  if(grafo_knn_conectado[k]==TRUE){
+                    k=n
+                  }else{
+                    k=k+1
+                  }
 
 
-          #creo el knn. Para cada caso de k.
-          grafo_knn[[k]]=igraph::graph.data.frame(d = arista_vecinos_unidas[[k]][,1:2], directed = FALSE)
-          #eliminar aristas tipo lazos (o sea 1-3 y 3-1 dejar solo 1)
-          grafo_knn[[k]]=igraph::simplify(grafo_knn[[k]], remove.loops = TRUE, remove.multiple = FALSE)
+        }
 
-          #determino si este k, produce un knn conectado
-          grafo_knn_conectado[k]=igraph::is.connected(grafo_knn[[k]])
+          #minimo k que mantiene conectado el knn
 
-          #Si este k esta conectado entonces ya no evaluo mas los k ya q es el minimo k que conecta
-          if(grafo_knn_conectado[k]==TRUE){
-            k=n
+          #evaluacion_k es vector booleano de cada k evaluado. True si el valor correspondiente k mantiene el knn conectado
+          evaluacion_k=which(grafo_knn_conectado==TRUE)
+
+          if(length(evaluacion_k)>0){
+            #si evaluacion tiene largo >0 es porque algun k evaluado mantiene conectado el grafo. Por tanto de esos k escogo el menor
+            k_conectado=min(evaluacion_k)
           }else{
-            k=k+1
+            cat("\n In any k the graph knn can be connected. It will use as k the log(n). \n")
+            k_conectado=n
           }
 
-}
+          #minimo Logaritmo natural.
+
+          #usa funcion piso (floor): devuelve el maximo entero no superior a n
+          k_natural=floor(log(n))
 
 
 
 
+          if(missing(k.user)) {
 
-  #minimo k que mantiene conectado el knn
-
-  #evaluacion_k es vector booleano de cada k evaluado. True si el valor correspondiente k mantiene el knn conectado
-  evaluacion_k=which(grafo_knn_conectado==TRUE)
-
-  if(length(evaluacion_k)>0){
-    #si evaluacion tiene largo >0 es porque algun k evaluado mantiene conectado el grafo. Por tanto de esos k escogo el menor
-    k_conectado=min(evaluacion_k)
-  }else{
-    cat("\n In any k the graph knn can be connected. It will use as k the log(n). \n")
-    k_conectado=n
-  }
+            #Determinar min K para que knn esté conectado
+            valor_k = min(k_natural, k_conectado)
 
 
-  #minimo Logaritmo natural.
+          }else{
+            k_user=k
 
-  #usa funcion piso (floor): devuelve el maximo entero no superior a n
-  k_natural=floor(log(n))
+            #Determinar min K para que knn esté conectado
+            valor_k = min(k_natural, k_conectado, k_user)
+
+          }
 
 
-  #Determinar min K para que knn esté conectado
-  valor_k = min(k_natural, k_conectado)
 
-  #para casos que minimo valor_k es 0 entonces asigno como valor_k=1
-  if(valor_k==0) {valor_k=1}
+          #para casos que minimo valor_k es 0 entonces asigno como valor_k=1
+          if(valor_k==0) {valor_k=1}
+
+
+
+
 
 
   #edges.knn.graph=igraph::get.edgelist(grafo_knn[[valor_k]], names=TRUE)
@@ -425,12 +453,13 @@ compute.costs.proximity.graph=function(graph.edges, distance.matrix){
 #' @description This function performs a graph partition based on the intersection of the edges of two proximity graphs: MST and kNN.
 #' @param nodes.list A vector with a subset of objects (nodes) of the data matrix for which the MST y kNN graphs must be generated.
 #' @param distance.matrix A distance matrix between each pair of elements in \code{nodes.list}. It is used as the edges costs to generate MST y kNN graphs.
+#' @param k.user A numeric value representing the number of nearest neighbor to consider to generate the \emph{k}NN graph.
 #' @return A list with the elements
 #' \item{cc}{A numeric value representing the number of connected components (cc) generated after graphs intersection.}
 #' \item{subgraphs}{ A list where each item contains the nodes of the connected components (cc) generated.}
 #' \item{ccgraph}{A object of class "igraph" which is a network with each connected components (cc) generated.}
 #' @author  Mario Inostroza-Ponta, Jorge Parraga-Alava, Pablo Moscato
-generate.intersections.mst.knn <- function(nodes.list, distance.matrix){
+generate.intersections.mst.knn <- function(nodes.list, distance.matrix, k.user){
 
 
   #            Order nodes.list to  edges tin complete graphs be ordered.
@@ -455,7 +484,7 @@ generate.intersections.mst.knn <- function(nodes.list, distance.matrix){
             ###grafo_mst_costo_total=compute.total.costs.mst(as.matrix(grafo_mst_aristas[,1:2]), distance.matrix)
 
             #            Generate kNN graph                #
-            calcula_knn=generate.knn(edges.complete.graph)
+            calcula_knn=generate.knn(edges.complete.graph, k.user)
             #grafo_knn_aristas=calcula_knn$edges.knn.graph
             grafo_knn_arbol=calcula_knn$knn.graph
             ###grafo_knn_costo_total=compute.total.costs.knn(grafo_knn_aristas, distance.matrix)
@@ -573,7 +602,10 @@ return(list(network=g_clusters, k=final_grupos_num_clusters, cluster= vector_par
 #'
 #' To create MST, \emph{Prim} algorithm is used. To create \emph{k}NN,  \code{distance.matrix} passed as input is considered.
 #' @param distance.matrix  A numeric matrix or data.frame with equals numbers of rows and columns representing objects to group.
-#' @details To see more details of how MST-kNN works refers to the \href{../doc/guide.html}{quick guide}.
+#' @param k.user A numeric value representing the number of cluster to yield. Note that, due to the algorithm operation, this number may be different at the end of the algorithm execution.
+#' @details
+#' To see more details of how MST-kNN works refers to the \href{../doc/guide.html}{quick guide}.
+#'
 #' @return A list with the elements
 #' \item{k}{Number of cluster of the solution.}
 #' \item{cluster}{A named vector of integers from \code{1:k} representing the cluster to which each object is assigned.}
@@ -599,7 +631,7 @@ return(list(network=g_clusters, k=final_grupos_num_clusters, cluster= vector_par
 #' library("amap")
 #' d <- base::as.matrix(amap::Dist(x, method="euclidean"))
 #'
-#' ##Performs MST-kNN clustering using euclidean distance
+#' ##Performs MST-kNN clustering using euclidean distance and automatic k determination.
 #'
 #' results <- mst.knn(d)
 #'
@@ -610,8 +642,9 @@ return(list(network=g_clusters, k=final_grupos_num_clusters, cluster= vector_par
 #'      vertex.color=igraph::clusters(results$network)$membership,
 #'      layout=igraph::layout.fruchterman.reingold(results$network, niter=10000),
 #'      main=paste("MST-kNN \n Clustering solution \n k=",results$k,sep="" ))
+#'
 #' @export
-mst.knn<-function(distance.matrix){
+mst.knn<-function(distance.matrix, k.user){
 
   #      Validation of inputs     #
 
@@ -631,13 +664,13 @@ mst.knn<-function(distance.matrix){
                   subgraphs=1:nrow(distance.matrix)
 
                   #            Initialization               #
-                  inicio=generate.intersections.mst.knn(subgraphs, distance.matrix)
+                  inicio=generate.intersections.mst.knn(subgraphs, distance.matrix, k.user)
 
                   #          Recursivity on each CC           #
                   nodos_singletons=list()
                   nodos_singletons=c(nodos_singletons,Filter(function(x) length(x)<=1, inicio$subgraphs) )
 
-                  #           Update subgraphs list usingn those have two o more nodes #
+                  #           Update subgraphs list using those have two o more nodes #
                   subgraphs=Filter(function(x) length(x)>=2, inicio$subgraphs)
 
                   #           Create list where are stored subgraphs with cc=1 (o sea el que es cluster). List store object igraph
@@ -671,7 +704,7 @@ mst.knn<-function(distance.matrix){
                                   for(y in 1:length(subgraphs)){
 
                                     #           Perform intersections on each subgraph with cc>1
-                                    componente=generate.intersections.mst.knn(subgraphs[[y]], distance.matrix)
+                                    componente=generate.intersections.mst.knn(subgraphs[[y]], distance.matrix, k.user)
 
                                     #           Store possible singletons nodes obtained after re-run mst.knn
                                     nodos_singletons=c(nodos_singletons, Filter(function(x) length(x)<=1, componente$subgraphs))

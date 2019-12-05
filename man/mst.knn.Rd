@@ -4,10 +4,12 @@
 \alias{mst.knn}
 \title{Performs the MST-kNN clustering algorithm}
 \usage{
-mst.knn(distance.matrix)
+mst.knn(distance.matrix, k.user)
 }
 \arguments{
 \item{distance.matrix}{A numeric matrix or data.frame with equals numbers of rows and columns representing objects to group.}
+
+\item{k.user}{A numeric value representing the number of cluster to yield. Note that, due to the algorithm operation, this number may be different at the end of the algorithm execution.}
 }
 \value{
 A list with the elements
@@ -42,7 +44,7 @@ x <- matrix(runif(n*m, min = -5, max = 10), nrow=n, ncol=m)
 library("amap")
 d <- base::as.matrix(amap::Dist(x, method="euclidean"))
 
-##Performs MST-kNN clustering using euclidean distance
+##Performs MST-kNN clustering using euclidean distance and automatic k determination.
 
 results <- mst.knn(d)
 
@@ -53,6 +55,7 @@ plot(results$network, vertex.size=8,
      vertex.color=igraph::clusters(results$network)$membership,
      layout=igraph::layout.fruchterman.reingold(results$network, niter=10000),
      main=paste("MST-kNN \\n Clustering solution \\n k=",results$k,sep="" ))
+
 }
 \references{
 Inostroza-Ponta, M. (2008). \emph{An Integrated and Scalable Approach Based on Combinatorial Optimization Techniques for the Analysis of Microarray Data}. Ph.D. thesis, School of Electrical Engineering and Computer Science. University of Newcastle.
