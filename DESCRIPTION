@@ -1,8 +1,8 @@
 Package: mstknnclust
 Type: Package
 Title: MST-kNN Clustering Algorithm
-Version: 0.2.0
-Date: 2019-12-05
+Version: 0.3.0
+Date: 2020-07-14
 Authors@R: c(person("Jorge Parraga-Alava", email = "jorge.parraga@usach.cl", role = c("aut", "cre")), person("Pablo Moscato", email = "pablo.moscato@newcastle.edu.au", role=c("aut")), person("Mario Inostroza-Ponta", email = "mario.inostroza@usach.cl", role = c("aut")))
 Author: Jorge Parraga-Alava [aut, cre],
   Pablo Moscato [aut],
@@ -12,11 +12,11 @@ Description: Implements the MST-kNN clustering algorithm which was proposed by I
 Depends: R (>= 3.2.5)
 License: GPL-2
 Encoding: UTF-8
-Imports: igraph, amap
-RoxygenNote: 6.1.1
+Imports: igraph, stats, base
+RoxygenNote: 7.1.0
 VignetteBuilder: knitr
 Suggests: knitr, rmarkdown
 NeedsCompilation: no
-Packaged: 2019-12-05 20:08:55 UTC; jparr
+Packaged: 2020-07-14 16:02:06 UTC; jk
 Repository: CRAN
-Date/Publication: 2019-12-05 20:40:02 UTC
+Date/Publication: 2020-07-14 16:20:02 UTC

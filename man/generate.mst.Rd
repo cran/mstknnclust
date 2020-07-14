@@ -7,15 +7,15 @@
 generate.mst(edges.complete.graph)
 }
 \arguments{
-\item{edges.complete.graph}{A object of class "data.frame" with three columns (\emph{from}, \emph{to}, \emph{costs}) representing the edges costs of a complete graph.}
+\item{edges.complete.graph}{A object of class "data.frame" with three columns (\emph{object_i}, \emph{object_j}, \emph{d_ij}) representing the distance \emph{d_ij} between \emph{object i} and \emph{object j} of the complete graph.}
 }
 \value{
 A list with the elements
-\item{edges.mst.graph}{A object of class "data.frame" with three columns (\emph{from}, \emph{to}, \emph{costs}) representing the edges costs forming the MST graph.}
+\item{edges.mst.graph}{A object of class "data.frame" with three columns (\emph{object_i}, \emph{object_j}, \emph{d_ij}) representing the distance \emph{d_ij} between object \emph{i} and object \emph{j} that are part of the MST graph.}
 \item{mst.graph}{A object of class "igraph" which is the Minimal Spanning Tree (MST) graph generated.}
 }
 \description{
-This function generates the Minimal Spanning Tree (MST) graph which is a connected and acyclic subgraph contains all the nodes of the complete graph (CG) and whose edges sum has minimum costs.
+This function generates the Minimal Spanning Tree (MST) graph which is a connected and acyclic subgraph contains all the nodes of the complete graph (CG) and whose edges sum (distances) has minimum costs. Each node represents an object of the complete graph.
 }
 \details{
 Generation of MST graph is performed using the Prim's algorithm.
@@ -30,8 +30,8 @@ x <- matrix(runif(n*m, min = -5, max = 10), nrow=n, ncol=m)
 
 ##Computes a distance matrix of x.
 
-library("amap")
-d <- base::as.matrix(amap::Dist(x, method="euclidean"))
+library("stats")
+d <- base::as.matrix(stats::dist(x, method="euclidean"))
 
 ##Generates complete graph (CG)
 

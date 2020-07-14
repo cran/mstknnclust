@@ -16,18 +16,18 @@ bibliography: bibliography.bib
 
 ## Introduction
 
-Clustering is a common data mining task commonly used to reveal structures hidden in large data sets. The clustering problem consists of finding groups of objects, such that objects that are in the same group are similar and objects in different groups are dissimilar. Clustering algorithms can be classified according to different parameters. One particular type of algorithms can be distinguished are the **graph-based clustering**. In graph-based clustering algorithm the data set can be modeled as a graph. In such graph, a *node* represents an object of the data set, a  *edge* a link between pairs of nodes. Each edge has a *costs* corresponds to the distance between two nodes, calculated using a chosen distance measure.
+Clustering is a common data mining task commonly used to reveal structures hidden in large data sets. The clustering problem consists of finding groups of objects, such that objects that are in the same group are similar and objects in different groups are dissimilar. Clustering algorithms can be classified according to different parameters. One particular type of algorithms that can be distinguished is the **graph-based clustering**. In the graph-based clustering algorithms, the data set can be modeled as a graph. In such a graph, a *node* represents an object of the data set, an  *edge* a link between pairs of nodes. Each edge has a *costs* that corresponds to the distance between two nodes, calculated using a chosen distance measure.
 
-One of the clustering algorithms within *graph-based* approach is the **MST-kNN** [@mario]. It uses two proximity graphs: *minimum spanning tree (MST)* and *k nearest neighbor (kNN)*. They are able to model the data and highlight the more important relationships between the objects of the data. MST-kNN requires minimal user intervention due to automatic selection of the *k* value. Such situation is adequate in scenarios where the structure of the data is unknown.
+One of the clustering algorithms within the *graph-based* approach is the **MST-kNN** [@mario]. It uses two proximity graphs: *minimum spanning tree (MST)* and *k nearest neighbor (kNN)*. They can model the data and highlight the more important relationships between the objects of the data. MST-kNN requires minimal user intervention due to the automatic selection of the number of clusters. Such a situation is adequate in scenarios where the structure of the data is unknown.
 
-This document gives a quick guide of `mstknnclust` package (version 0.1.0). It corresponds to the implementation of the MST-kNN clustering algorithm. For further details to see `help(package="mstknnclust")`. If you use this R package do not forget to include the references provided by `citation("mstknnclust")`.
+This document gives a quick guide of the `mstknnclust` package (version 0.3.0). It corresponds to the implementation of the MST-kNN clustering algorithm. For further details to see `help(package="mstknnclust")`. If you use this R package do not forget to include the references provided by `citation("mstknnclust")`.
 
 
 ## How does MST-kNN clustering works?
 
-The MST-kNN clustering algorithm is based on the *intersection* of the edges of two proximity graphs: **MST** and **kNN**. The *intersection* operation conserves only those edges between two nodes are reciprocal in both proximity graphs. After the first application of the algorithm, a graph with one or more connected components (*cc*) is generated. MST-kNN algorithm is recursively applied in each component, until the number of *cc* obtained is one.
+The MST-kNN clustering algorithm is based on the *intersection* of the edges of two proximity graphs: **MST** and **kNN**. The *intersection* operation conserves only those edges between two nodes that are reciprocal in both proximity graphs. After the first application of the algorithm, a graph with one or more connected components (*cc*) is generated. MST-kNN algorithm is recursively applied in each component until the number of *cc* obtained is one.
 
-The algorithm requires a **distance matrix** *d* as input containing the distance between *n* objects. Then, next steps are performed:
+The algorithm requires a **distance matrix** *d* as input containing the distance between *n* objects. Then, the next steps are performed:
 
 1. Computes a **complete graph (CG)** that represents the data, with one *node* per object, one *edge* for each pair of objects, and the *cost* of the edge equal to the distance between the objects obtained from distance matrix *d*.
 2. Computes the **MST** graph through Prim's algorithm [@prim] and using the **complete graph** as input.
@@ -71,14 +71,13 @@ results <- mst.knn(dslanguages)
 ```
 
 #### Getting the results
-The function `mst.knn` return a list with five elements:
+The function `mst.knn` returns a list with the elements:
 
-1. **k**: Number of cluster of the solution.
-2. **csize**: A vector with the cardinality of each cluster.
-3. **cluster**: A named vector of integers from *1:k* representing the cluster to which each object is assigned.
-4. **partition**: A partition matrix order by the clusters where objects were allocated.
+1. **cnumber**: A numeric value representing the number of clusters of the solution.
+2. **cluster**: A named vector of integers from *1:cnumber* representing the cluster to which each object is assigned.
+3. **partition**: A partition matrix order by cluster where are shown the objects and the cluster where they are assigned.
+4. **csize**: A vector with the cardinality of each cluster in the solution.
 5. **network**: An object of class "igraph" as a network representing the clustering solution.
-
 
 ```{r, echo=FALSE}
 cat("Number of clusters: ", results$k , "\n")
@@ -95,11 +94,11 @@ The clustering solutions can be shown as a network where clusters are identified
 ```{r, fig.align = "center", fig.height = 7, fig.width = 7}
 library("igraph")
 igraph::V(results$network)$label.cex <- seq(0.6,0.6,length.out=2)
-plot(results$network,
-     vertex.size=5,
-     vertex.label.dist=0.30, 
-     vertex.color=igraph::clusters(results$network)$membership,
-     layout=igraph::layout.fruchterman.reingold(results$network, niter=10000))
+
+plot(results$network, vertex.size=8, 
+     vertex.color=igraph::clusters(results$network)$membership, 
+     layout=igraph::layout.fruchterman.reingold(results$network, niter=10000),
+     main=paste("MST-kNN \n Clustering solution \n Number of clusters=",results$cnumber,sep="" ))
 ```
  
 

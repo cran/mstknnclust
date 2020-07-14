@@ -7,15 +7,15 @@
 compute.costs.proximity.graph(graph.edges, distance.matrix)
 }
 \arguments{
-\item{graph.edges}{A object of class "matrix" with two columns (\emph{from}, \emph{to}) representing the edges costs of a proximity graph.}
+\item{graph.edges}{A object of class "matrix" with two columns (\emph{object_i}, \emph{object_j}) representing the objects (nodes) of a proximity graph.}
 
-\item{distance.matrix}{A distance matrix between each pair of nodes in the proximity graph.}
+\item{distance.matrix}{A distance matrix between each pair of object i,j in the proximity graph.}
 }
 \value{
-\item{total.costs.graph}{ A numeric value representing the edge costs overall sum of a proximity graph.}
+\item{total.costs.graph}{A numeric value representing the edge costs (distance) overall sum of a proximity graph.}
 }
 \description{
-This function computes the edge costs overall sum of a proximity graph.
+This function computes the edge costs (distances) overall sum of a proximity graph.
 }
 \examples{
 
@@ -27,8 +27,8 @@ x <- matrix(runif(n*m, min = -5, max = 10), nrow=n, ncol=m)
 
 ##Computes a distance matrix of x.
 
-library("amap")
-d <- base::as.matrix(amap::Dist(x, method="euclidean"))
+library("stats")
+d <- base::as.matrix(stats::dist(x, method="euclidean"))
 
 ##Generates complete graph (CG)
 
@@ -48,3 +48,4 @@ knneig <- generate.knn(cg)
 knneig.cost=as.numeric(compute.costs.proximity.graph(as.matrix(knneig$edges.knn.graph[,1:2]), d))
 knneig.cost
 }
+\keyword{internal}

@@ -4,23 +4,23 @@
 \alias{mst.knn}
 \title{Performs the MST-kNN clustering algorithm}
 \usage{
-mst.knn(distance.matrix, k.user)
+mst.knn(distance.matrix, num.cluster)
 }
 \arguments{
-\item{distance.matrix}{A numeric matrix or data.frame with equals numbers of rows and columns representing objects to group.}
+\item{distance.matrix}{A numeric matrix or data.frame with equals numbers of rows and columns representing distances between objects to group.}
 
-\item{k.user}{A numeric value representing the number of cluster to yield. Note that, due to the algorithm operation, this number may be different at the end of the algorithm execution.}
+\item{num.cluster}{A numeric value representing the suggested number of cluster to yield. It is an optional argument. Note that, due to the algorithm operation, this number may be different at the end of the algorithm execution.}
 }
 \value{
 A list with the elements
-\item{k}{Number of cluster of the solution.}
-\item{cluster}{A named vector of integers from \code{1:k} representing the cluster to which each object is assigned.}
+\item{cnumber}{A numeric value representing the number of clusters of the solution.}
+\item{cluster}{A named vector of integers from \code{1:cnumber} representing the cluster to which each object is assigned.}
 \item{partition}{A partition matrix order by cluster where are shown the objects and the cluster where they are assigned.}
 \item{csize}{A vector with the cardinality of each cluster in the solution.}
 \item{network}{An object of class "igraph" as a network representing the clustering solution.}
 }
 \description{
-Performs the MST-kNN clustering algorithm which generate a clustering solution with automatic \emph{k} determination using two proximity graphs: Minimal Spanning Tree (MST) and k-Nearest Neighbor (\emph{k}NN) which are recursively intersected.
+Performs the MST-kNN clustering algorithm which generates a clustering solution with automatic \emph{number of clusters} determination using two proximity graphs: Minimal Spanning Tree (MST) and k-Nearest Neighbor (\emph{k}NN) which are recursively intersected.
 
 To create MST, \emph{Prim} algorithm is used. To create \emph{k}NN,  \code{distance.matrix} passed as input is considered.
 }
@@ -41,10 +41,10 @@ x <- matrix(runif(n*m, min = -5, max = 10), nrow=n, ncol=m)
 
 ##Computes a distance matrix of x.
 
-library("amap")
-d <- base::as.matrix(amap::Dist(x, method="euclidean"))
+library("stats")
+d <- base::as.matrix(stats::dist(x, method="euclidean"))
 
-##Performs MST-kNN clustering using euclidean distance and automatic k determination.
+##Performs MST-kNN clustering using euclidean distance.
 
 results <- mst.knn(d)
 
@@ -54,7 +54,7 @@ library("igraph")
 plot(results$network, vertex.size=8,
      vertex.color=igraph::clusters(results$network)$membership,
      layout=igraph::layout.fruchterman.reingold(results$network, niter=10000),
-     main=paste("MST-kNN \\n Clustering solution \\n k=",results$k,sep="" ))
+     main=paste("MST-kNN \n Clustering solution \n Number of clusters=",results$cnumber,sep="" ))
 
 }
 \references{

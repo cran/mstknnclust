@@ -3,8 +3,10 @@
 \docType{data}
 \name{dslanguages}
 \alias{dslanguages}
-\title{Indo-European languages dataset of class 'distance matrix'}
-\format{An data frame of type distance matrix with 84 rows and columns.}
+\title{Indo-European languages dataset}
+\format{
+An data frame with 84 rows and 84 columns containing a distance matrix.
+}
 \usage{
 data(dslanguages)
 }

@@ -33,17 +33,17 @@ only.single.graphs <- function(total_nodos, nodos_singletons) {
 
 #' Generates a complete graph
 #'
-#' @description This function generates a complete graph assigning costs to the edges according to \code{distance.matrix}.
-#' @param nodes.list A vector with a subset of objects (nodes) of the data matrix for which the complete graph must be generated.
-#' @param distance.matrix A distance matrix between each pair of elements in \code{nodes.list}. It is used as the edges costs to generate the complete graph.
-#' @return \item{edges.complete.graph}{A object of class "data.frame" with three columns (\emph{from}, \emph{to}, \emph{costs}) representing the edges costs of complete graph. For instance:}
+#' @description This function generates a complete graph. Where each node represents a object_i and the edges have a cost representing the distance d_ij between object_i and other object_j.
+#' @param nodes.list A vector with a subset of nodes (objects) of the data matrix for which the complete graph must be generated.
+#' @param distance.matrix A distance matrix between each pair of objects in \code{nodes.list}. It is used as the edges costs to generate the complete graph.
+#' @return \item{edges.complete.graph}{A object of class "data.frame" with three columns (\emph{object_i}, \emph{object_j}, \emph{d_ij}) representing the distance between object \emph{i} and object \emph{j} of the distance matrix. For instance:}
 #' \tabular{llc}{
-#'   \emph{from} \tab  \emph{to} \tab  \emph{costs}\cr
+#'  \emph{object_i} \tab  \emph{object_j} \tab  \emph{d_ij}\cr
 #'  1 \tab 2 \tab 1.60\cr
-#'   1 \tab 3 \tab 0.08\cr
-#'   1 \tab 4 \tab 1.21\cr
-#'   ... \tab ... \tab ...\cr
-#'   n-1 \tab n \tab ...\cr
+#'  1 \tab 3 \tab 0.08\cr
+#'  1 \tab 4 \tab 1.21\cr
+#'  ... \tab ... \tab ...\cr
+#'  n-1 \tab n \tab ...\cr
 #' }
 #' @author  Mario Inostroza-Ponta, Jorge Parraga-Alava, Pablo Moscato
 #' @examples
@@ -57,8 +57,8 @@ only.single.graphs <- function(total_nodos, nodos_singletons) {
 #'
 #' ##Computes a distance matrix of x.
 #'
-#' library("amap")
-#' d <- base::as.matrix(amap::Dist(x, method="euclidean"))
+#' library("stats")
+#' d <- base::as.matrix(stats::dist(x, method="euclidean"))
 #'
 #' ##Generates complete graph (CG)
 #'
@@ -71,36 +71,34 @@ only.single.graphs <- function(total_nodos, nodos_singletons) {
 #' cg.network=igraph::graph.adjacency(d, mode="undirected", weighted=TRUE)
 #' plot(cg.network, edge.label=round(E(cg.network)$weight, 2), main="Complete Graph")
 #'
-#' @keywords graph
-#' @keywords complete
+#' @keywords internal
 #' @export
 generate.complete.graph <-function(nodes.list, distance.matrix){
 
   aristas= t(utils::combn(nodes.list,2))
-  colnames(aristas)=c("from","to")
+  colnames(aristas)=c("object_i","object_j")
 
-  costs=distance.matrix[aristas]
+  d_ij=distance.matrix[aristas]
 
-  aristas=cbind(aristas,costs)
+  aristas=cbind(aristas,d_ij)
 
 
   return(edges.complete.graph=as.data.frame(aristas))
 
 }
 
-
-
+ 
 
 #' Generates a kNN graph
 #'
-#' @description This function generates the \emph{k}-Nearest Neighbors (kNN) graph which is a subgraph contains edges between nodes if, and only if, they are one of the \emph{k} nearest neighbors considering the edges costs.
-#' @param edges.complete.graph A object of class "data.frame" with three columns (\emph{from}, \emph{to}, \emph{costs}) representing the edges costs of a complete graph.
-#' @param k.user A numeric value representing the number of nearest neighbor to consider to generate the \emph{k}NN graph.
+#' @description This function generates the \emph{k}-Nearest Neighbors (kNN) graph which is a subgraph contains edges between nodes if, and only if, they are one of the \emph{k} nearest neighbors considering the edges costs (distances). Each node represents an object of the complete graph.
+#' @param edges.complete.graph A object of class "data.frame" with three columns (\emph{object_i}, \emph{object_j}, \emph{d_ij}) representing the distance \emph{d_ij} between \emph{object_i} and \emph{object_j}.
+#' @param suggested.k  It is an optional argument. A numeric value representing the suggested number of \emph{k}-nearest neighbor to consider to generate the \emph{k}NN graph.
 #' @details During its generation, the \emph{k} value is automatically determined by the definition:
-#' \deqn{k = min{\lfloor \ln(|nodes.list|) \rfloor; min k |  kNN  is connected; k.user }}
-#' If \emph{k.user} parameter is not provided, it is not considered by the definition.
+#' \deqn{k = min{\lfloor \ln(|nodes.list|) \rfloor; min k |  kNN  is connected; suggested.k }}
+#' If \emph{suggested.k} parameter is not provided, it is not considered by the definition.
 #' @return A list with the elements
-#' \item{edges.knn.graph}{A object of class "data.frame" with three columns (\emph{from}, \emph{to}, \emph{costs}) representing the edges costs forming the kNN graph.}
+#' \item{edges.knn.graph}{A object of class "data.frame" with three columns (\emph{object_i}, \emph{object_j}, \emph{d_ij}) representing the \emph{d_ij} between \emph{object_i} and \emph{object_j} that are part of the \emph{k}NN graph.}
 #' \item{knn.graph}{A object of class "igraph" which is the \emph{k}-Nearest Neighbors (kNN) graph generated.}
 #' \item{k}{The \emph{k} value determined by the definition.}
 #' @author  Mario Inostroza-Ponta, Jorge Parraga-Alava, Pablo Moscato
@@ -114,10 +112,10 @@ generate.complete.graph <-function(nodes.list, distance.matrix){
 #'
 #' ##Computes a distance matrix of x.
 #'
-#' library("amap")
-#' d <- base::as.matrix(amap::Dist(x, method="euclidean"))
+#' library("stats")
+#' d <- base::as.matrix(stats::dist(x, method="euclidean"))
 #'
-#' ##Generates complete graph (CG) without k.user parameter
+#' ##Generates complete graph (CG) without suggested.k parameter
 #'
 #' cg <- generate.complete.graph(1:nrow(x),d)
 #'
@@ -130,12 +128,12 @@ generate.complete.graph <-function(nodes.list, distance.matrix){
 #'
 #'
 #'
-#' ##Generates complete graph (CG) with k.user parameter
+#' ##Generates complete graph (CG) with suggested.k parameter
 #'
 #' cg <- generate.complete.graph(1:nrow(x),d)
 #'
 #' ##Generates kNN graph
-#' knn <- generate.knn(cg, k.user=4)
+#' knn <- generate.knn(cg, suggested.k=4)
 #'
 #' ##Visualizing kNN graph
 #' plot(knn$knn.graph,
@@ -143,21 +141,16 @@ generate.complete.graph <-function(nodes.list, distance.matrix){
 #' @keywords graph
 #' @keywords knn
 #' @export
-generate.knn <- function(edges.complete.graph, k.user) {
+generate.knn <- function(edges.complete.graph, suggested.k) {
 
   grafo_knn=list()
   arista_vecinos_unidas=list()
   grafo_knn_conectado=vector()
-
-
-
-  #n=length(unique(unname(unlist(edges.complete.graph[,1:2])))) #cuenta el numero total de nodos
-  #nodos= unique(unname(unlist(edges.complete.graph[,1:2])))
-
+ 
   #almacenada la lista de nodos
-  nodos.from<-unique(edges.complete.graph$from)
-  nodos.to<-unique(edges.complete.graph$to)
-  nodos<-c(nodos.from, nodos.to)
+  nodos.object_i<-unique(edges.complete.graph$object_i)
+  nodos.object_j<-unique(edges.complete.graph$object_j)
+  nodos<-c(nodos.object_i, nodos.object_j)
   nodos<-unique(nodos)
   n <-length(nodos)
   #evaluo cada k desde 1 hasta n-1 para ver cual minimo k mantiene conectado al knn
@@ -168,25 +161,25 @@ generate.knn <- function(edges.complete.graph, k.user) {
           while(k <=(n-1)){
 
             #ordeno tabla de pares de aristas de acuerdo al costo, y convierto en factor cada nodo
-            aristas.ordenadas <- edges.complete.graph[order(edges.complete.graph$costs),]
-            aristas.ordenadas$from <- as.factor(aristas.ordenadas$from)
-            aristas.ordenadas$to <- as.factor(aristas.ordenadas$to)
+            aristas.ordenadas <- edges.complete.graph[order(edges.complete.graph$d_ij),]
+            aristas.ordenadas$object_i <- as.factor(aristas.ordenadas$object_i)
+            aristas.ordenadas$object_j <- as.factor(aristas.ordenadas$object_j)
             #separo la tabla de pares de aristas por cada nodo. Como estan ordenadas por costos, selecciono los k nodos mas cercanos al nodo
             #esto se aplica para nodos en from y luego para nodos en to
-            vecinos.nodos.from<-do.call(rbind, lapply(split(aristas.ordenadas,aristas.ordenadas$from), function(x) {return(x[1:k,])}))
-            vecinos.nodos.from<-stats::na.omit(vecinos.nodos.from)
-            vecinos.nodos.to<-do.call(rbind, lapply(split(aristas.ordenadas,aristas.ordenadas$to), function(x) {return(x[1:k,])}))
-            vecinos.nodos.to<-stats::na.omit(vecinos.nodos.to)
+            vecinos.nodos.object_i<-do.call(rbind, lapply(split(aristas.ordenadas,aristas.ordenadas$object_i), function(x) {return(x[1:k,])}))
+            vecinos.nodos.object_i<-stats::na.omit(vecinos.nodos.object_i)
+            vecinos.nodos.object_j<-do.call(rbind, lapply(split(aristas.ordenadas,aristas.ordenadas$object_j), function(x) {return(x[1:k,])}))
+            vecinos.nodos.object_j<-stats::na.omit(vecinos.nodos.object_j)
             #ubicar como primer columna el to, luego cambiar nombre a columnas para que
-            #tenga mismos encabezados que vecinos.nodos.from y hacer poder usar el split
-            vecinos.nodos.to<-vecinos.nodos.to[,c(2,1,3)]
-            colnames(vecinos.nodos.to)<-c("from", "to", "costs")
+            #tenga mismos encabezados que vecinos.nodos.object_i y hacer poder usar el split
+            vecinos.nodos.object_j<-vecinos.nodos.object_j[,c(2,1,3)]
+            colnames(vecinos.nodos.object_j)<-c("object_i", "object_j", "d_ij")
             #uno ambos resultados (from y to)
-            vecinos.nodos.ambos<-rbind(vecinos.nodos.from, vecinos.nodos.to)
+            vecinos.nodos.ambos<-rbind(vecinos.nodos.object_i, vecinos.nodos.object_j)
             #vuelvo a ordenar el par de aristas, pero ahora estan solo los mas cercanos desde from y desde to.
-            ambos.ordenados=vecinos.nodos.ambos[order(vecinos.nodos.ambos$costs),]
+            ambos.ordenados=vecinos.nodos.ambos[order(vecinos.nodos.ambos$d_ij),]
             #separo la tabla para seleccionar solo los k mas cercanos a cada nodo
-            vecinos.final<-do.call(rbind, lapply(split(ambos.ordenados, ambos.ordenados$from), function(x) {return(x[1:k,])}))
+            vecinos.final<-do.call(rbind, lapply(split(ambos.ordenados, ambos.ordenados$object_i), function(x) {return(x[1:k,])}))
             vecinos.final<-stats::na.omit(vecinos.final)
 
 
@@ -233,7 +226,7 @@ generate.knn <- function(edges.complete.graph, k.user) {
 
 
 
-          if(missing(k.user)) {
+          if(missing(suggested.k)) {
 
             #Determinar min K para que knn esté conectado
             valor_k = min(k_natural, k_conectado)
@@ -273,11 +266,11 @@ generate.knn <- function(edges.complete.graph, k.user) {
 
 #' Generates a MST graph
 #'
-#' @description This function generates the Minimal Spanning Tree (MST) graph which is a connected and acyclic subgraph contains all the nodes of the complete graph (CG) and whose edges sum has minimum costs.
-#' @param edges.complete.graph A object of class "data.frame" with three columns (\emph{from}, \emph{to}, \emph{costs}) representing the edges costs of a complete graph.
+#' @description This function generates the Minimal Spanning Tree (MST) graph which is a connected and acyclic subgraph contains all the nodes of the complete graph (CG) and whose edges sum (distances) has minimum costs. Each node represents an object of the complete graph.
+#' @param edges.complete.graph A object of class "data.frame" with three columns (\emph{object_i}, \emph{object_j}, \emph{d_ij}) representing the distance \emph{d_ij} between \emph{object i} and \emph{object j} of the complete graph.
 #' @details Generation of MST graph is performed using the Prim's algorithm.
 #' @return A list with the elements
-#' \item{edges.mst.graph}{A object of class "data.frame" with three columns (\emph{from}, \emph{to}, \emph{costs}) representing the edges costs forming the MST graph.}
+#' \item{edges.mst.graph}{A object of class "data.frame" with three columns (\emph{object_i}, \emph{object_j}, \emph{d_ij}) representing the distance \emph{d_ij} between object \emph{i} and object \emph{j} that are part of the MST graph.}
 #' \item{mst.graph}{A object of class "igraph" which is the Minimal Spanning Tree (MST) graph generated.}
 #' @references
 #' Prim, R.C. (1957). \emph{Shortest connection networks and some generalizations}. Bell System Technical Journal, 37 1389-1401.
@@ -294,8 +287,8 @@ generate.knn <- function(edges.complete.graph, k.user) {
 #'
 #' ##Computes a distance matrix of x.
 #'
-#' library("amap")
-#' d <- base::as.matrix(amap::Dist(x, method="euclidean"))
+#' library("stats")
+#' d <- base::as.matrix(stats::dist(x, method="euclidean"))
 #'
 #' ##Generates complete graph (CG)
 #'
@@ -318,9 +311,9 @@ generate.mst <- function(edges.complete.graph) {
         #nodos= unique(unname(unlist(edges.complete.graph[,1:2]))) #almacenada la lista de nodos
 
         #almacenada la lista de nodos
-        nodos.from<-unique(edges.complete.graph$from)
-        nodos.to<-unique(edges.complete.graph$to)
-        nodos<-c(nodos.from, nodos.to)
+        nodos.object_i<-unique(edges.complete.graph$object_i)
+        nodos.object_j<-unique(edges.complete.graph$object_j)
+        nodos<-c(nodos.object_i, nodos.object_j)
         nodos<-unique(nodos)
         n <-length(nodos)
 
@@ -331,15 +324,15 @@ generate.mst <- function(edges.complete.graph) {
         #creo objeto igraph de grafo completo
         gc.i=igraph::graph.data.frame(edges.complete.graph, directed = FALSE)
         #asigno costos al grafo completo
-        igraph::E(gc.i)$weight=edges.complete.graph$costs
+        igraph::E(gc.i)$weight=edges.complete.graph$d_ij
         #Construyo mst con prim
         gmst.i <- igraph::mst(gc.i, algorithm="prim")
         #convierto en tabla de aristas el objeto igraph mst
         tabla=as.data.frame(igraph::as_edgelist(gmst.i))
-        tabla<-stats::setNames(tabla, c("from","to"))
-        tabla$from=as.numeric(tabla$from) #from
-        tabla$to=as.numeric(tabla$to) #to
-        tabla$costs=igraph::E(gmst.i)$costs#cost
+        tabla<-stats::setNames(tabla, c("object_i","object_j"))
+        tabla$object_i=as.numeric(tabla$object_i) #from
+        tabla$object_j=as.numeric(tabla$object_j) #to
+        tabla$d_ij=igraph::E(gmst.i)$d_ij#cost
 
         #asigno mst (objeto igraph y tabla aristas) a las variables a retornar
 
@@ -364,10 +357,10 @@ generate.mst <- function(edges.complete.graph) {
        #  j=1 #controla la fila de las tabla de aristas mst
        #  for (i in nodos[-1]){
        #      #choosing only that edges that has one end in current MST and another end not in MST
-       #      cand=graph[xor(graph$to %in% mst, graph$from %in% mst),]
+       #      cand=graph[xor(graph$object_j %in% mst, graph$object_i %in% mst),]
        #      #order the candidate edges by its cost and choose the cheapest
-       #      # nxt[[i]]=as.vector(graph[xor(graph$to %in% mst, graph$from %in% mst),][order(cand$costs)[1],])
-       #      nxt=as.vector(cand[order(cand$costs)[1],])
+       #      # nxt[[i]]=as.vector(graph[xor(graph$object_j %in% mst, graph$object_i %in% mst),][order(cand$d_ij)[1],])
+       #      nxt=as.vector(cand[order(cand$d_ij)[1],])
        #      #add new vertices to MST and drop repeated vertices
        #      mst=unique(c(mst,as.numeric(nxt[1]),as.numeric(nxt[2])))
        #      #save new edge into mstedge
@@ -397,10 +390,10 @@ generate.mst <- function(edges.complete.graph) {
 
 #' Computes the edge costs sum of a proximity graph
 #'
-#' @description This function computes the edge costs overall sum of a proximity graph.
-#' @param graph.edges A object of class "matrix" with two columns (\emph{from}, \emph{to}) representing the edges costs of a proximity graph.
-#' @param distance.matrix A distance matrix between each pair of nodes in the proximity graph.
-#' @return \item{total.costs.graph}{ A numeric value representing the edge costs overall sum of a proximity graph.}
+#' @description This function computes the edge costs (distances) overall sum of a proximity graph.
+#' @param graph.edges A object of class "matrix" with two columns (\emph{object_i}, \emph{object_j}) representing the objects (nodes) of a proximity graph.
+#' @param distance.matrix A distance matrix between each pair of object i,j in the proximity graph.
+#' @return \item{total.costs.graph}{A numeric value representing the edge costs (distance) overall sum of a proximity graph.}
 #' @examples
 #'
 #' set.seed(1987)
@@ -411,8 +404,8 @@ generate.mst <- function(edges.complete.graph) {
 #'
 #' ##Computes a distance matrix of x.
 #'
-#' library("amap")
-#' d <- base::as.matrix(amap::Dist(x, method="euclidean"))
+#' library("stats")
+#' d <- base::as.matrix(stats::dist(x, method="euclidean"))
 #'
 #' ##Generates complete graph (CG)
 #'
@@ -431,6 +424,7 @@ generate.mst <- function(edges.complete.graph) {
 #' ##Calculate the edge cost sum of proximity graph (kNN)
 #' knneig.cost=as.numeric(compute.costs.proximity.graph(as.matrix(knneig$edges.knn.graph[,1:2]), d))
 #' knneig.cost
+#' @keywords internal
 #' @export
 compute.costs.proximity.graph=function(graph.edges, distance.matrix){
 
@@ -453,13 +447,14 @@ compute.costs.proximity.graph=function(graph.edges, distance.matrix){
 #' @description This function performs a graph partition based on the intersection of the edges of two proximity graphs: MST and kNN.
 #' @param nodes.list A vector with a subset of objects (nodes) of the data matrix for which the MST y kNN graphs must be generated.
 #' @param distance.matrix A distance matrix between each pair of elements in \code{nodes.list}. It is used as the edges costs to generate MST y kNN graphs.
-#' @param k.user A numeric value representing the number of nearest neighbor to consider to generate the \emph{k}NN graph.
+#' @param num.cluster A numeric value representing the number of nearest neighbor to consider to generate the \emph{k}NN graph.
 #' @return A list with the elements
 #' \item{cc}{A numeric value representing the number of connected components (cc) generated after graphs intersection.}
 #' \item{subgraphs}{ A list where each item contains the nodes of the connected components (cc) generated.}
 #' \item{ccgraph}{A object of class "igraph" which is a network with each connected components (cc) generated.}
 #' @author  Mario Inostroza-Ponta, Jorge Parraga-Alava, Pablo Moscato
-generate.intersections.mst.knn <- function(nodes.list, distance.matrix, k.user){
+#' @keywords internal
+generate.intersections.mst.knn <- function(nodes.list, distance.matrix, num.cluster){
 
 
   #            Order nodes.list to  edges tin complete graphs be ordered.
@@ -484,7 +479,7 @@ generate.intersections.mst.knn <- function(nodes.list, distance.matrix, k.user){
             ###grafo_mst_costo_total=compute.total.costs.mst(as.matrix(grafo_mst_aristas[,1:2]), distance.matrix)
 
             #            Generate kNN graph                #
-            calcula_knn=generate.knn(edges.complete.graph, k.user)
+            calcula_knn=generate.knn(edges.complete.graph, num.cluster)
             #grafo_knn_aristas=calcula_knn$edges.knn.graph
             grafo_knn_arbol=calcula_knn$knn.graph
             ###grafo_knn_costo_total=compute.total.costs.knn(grafo_knn_aristas, distance.matrix)
@@ -528,8 +523,8 @@ generate.intersections.mst.knn <- function(nodes.list, distance.matrix, k.user){
 #' @param g_clusters A object of class igraph containing all component connected (cc=1).
 #' @param distance.matrix  A numeric matrix or data.frame with equals names and numbers of rows and columns representing objects to group.
 #' @return A list with the elements
-#' \item{k}{Number of cluster of the solution.}
-#' \item{cluster}{A named vector of integers of size n with values in range \code{1:k}, representing the cluster to which each object is assigned.}
+#' \item{cnumber}{A numeric value representing the number of clusters of the solution.}
+#' \item{cluster}{A named vector of integers of size n with values in range \code{1:cnumber}, representing the cluster to which each object is assigned.}
 #' \item{partition}{A partition matrix order by cluster where are shown the objects and the cluster where they are assigned.}
 #' \item{csize}{A vector of size k with the cardinality of each cluster in the solution.}
 #' \item{network}{An object of class "igraph" as a network representing the clustering solution.}
@@ -571,7 +566,7 @@ generate.results <-function(g_clusters, distance.matrix){
 
 
 
-return(list(network=g_clusters, k=final_grupos_num_clusters, cluster= vector_particion,
+return(list(network=g_clusters, cnumber=final_grupos_num_clusters, cluster= vector_particion,
                partition=tabla_particion, csize=final_grupos_cardinalidad))
 
 }
@@ -598,17 +593,17 @@ return(list(network=g_clusters, k=final_grupos_num_clusters, cluster= vector_par
 
 #' Performs the MST-kNN clustering algorithm
 #'
-#' @description Performs the MST-kNN clustering algorithm which generate a clustering solution with automatic \emph{k} determination using two proximity graphs: Minimal Spanning Tree (MST) and k-Nearest Neighbor (\emph{k}NN) which are recursively intersected.
+#' @description Performs the MST-kNN clustering algorithm which generates a clustering solution with automatic \emph{number of clusters} determination using two proximity graphs: Minimal Spanning Tree (MST) and k-Nearest Neighbor (\emph{k}NN) which are recursively intersected.
 #'
 #' To create MST, \emph{Prim} algorithm is used. To create \emph{k}NN,  \code{distance.matrix} passed as input is considered.
-#' @param distance.matrix  A numeric matrix or data.frame with equals numbers of rows and columns representing objects to group.
-#' @param k.user A numeric value representing the number of cluster to yield. Note that, due to the algorithm operation, this number may be different at the end of the algorithm execution.
+#' @param distance.matrix  A numeric matrix or data.frame with equals numbers of rows and columns representing distances between objects to group.
+#' @param num.cluster A numeric value representing the suggested number of cluster to yield. It is an optional argument. Note that, due to the algorithm operation, this number may be different at the end of the algorithm execution.
 #' @details
 #' To see more details of how MST-kNN works refers to the \href{../doc/guide.html}{quick guide}.
 #'
 #' @return A list with the elements
-#' \item{k}{Number of cluster of the solution.}
-#' \item{cluster}{A named vector of integers from \code{1:k} representing the cluster to which each object is assigned.}
+#' \item{cnumber}{A numeric value representing the number of clusters of the solution.}
+#' \item{cluster}{A named vector of integers from \code{1:cnumber} representing the cluster to which each object is assigned.}
 #' \item{partition}{A partition matrix order by cluster where are shown the objects and the cluster where they are assigned.}
 #' \item{csize}{A vector with the cardinality of each cluster in the solution.}
 #' \item{network}{An object of class "igraph" as a network representing the clustering solution.}
@@ -628,10 +623,10 @@ return(list(network=g_clusters, k=final_grupos_num_clusters, cluster= vector_par
 #'
 #' ##Computes a distance matrix of x.
 #'
-#' library("amap")
-#' d <- base::as.matrix(amap::Dist(x, method="euclidean"))
+#' library("stats")
+#' d <- base::as.matrix(stats::dist(x, method="euclidean"))
 #'
-#' ##Performs MST-kNN clustering using euclidean distance and automatic k determination.
+#' ##Performs MST-kNN clustering using euclidean distance.
 #'
 #' results <- mst.knn(d)
 #'
@@ -641,10 +636,10 @@ return(list(network=g_clusters, k=final_grupos_num_clusters, cluster= vector_par
 #' plot(results$network, vertex.size=8,
 #'      vertex.color=igraph::clusters(results$network)$membership,
 #'      layout=igraph::layout.fruchterman.reingold(results$network, niter=10000),
-#'      main=paste("MST-kNN \n Clustering solution \n k=",results$k,sep="" ))
+#'      main=paste("MST-kNN \n Clustering solution \n Number of clusters=",results$cnumber,sep="" ))
 #'
 #' @export
-mst.knn<-function(distance.matrix, k.user){
+mst.knn <- function(distance.matrix, num.cluster){
 
   #      Validation of inputs     #
 
@@ -664,7 +659,7 @@ mst.knn<-function(distance.matrix, k.user){
                   subgraphs=1:nrow(distance.matrix)
 
                   #            Initialization               #
-                  inicio=generate.intersections.mst.knn(subgraphs, distance.matrix, k.user)
+                  inicio=generate.intersections.mst.knn(subgraphs, distance.matrix, num.cluster)
 
                   #          Recursivity on each CC           #
                   nodos_singletons=list()
@@ -704,7 +699,7 @@ mst.knn<-function(distance.matrix, k.user){
                                   for(y in 1:length(subgraphs)){
 
                                     #           Perform intersections on each subgraph with cc>1
-                                    componente=generate.intersections.mst.knn(subgraphs[[y]], distance.matrix, k.user)
+                                    componente=generate.intersections.mst.knn(subgraphs[[y]], distance.matrix, num.cluster)
 
                                     #           Store possible singletons nodes obtained after re-run mst.knn
                                     nodos_singletons=c(nodos_singletons, Filter(function(x) length(x)<=1, componente$subgraphs))
@@ -758,7 +753,7 @@ mst.knn<-function(distance.matrix, k.user){
                   }else{
 
                         #           When there is nothing in cluster_subgraphs is because only singletons are yield.
-                        cat("\n Only singletons are yield \n")
+                        cat("\n Only singletons are yielded \n")
                         clusteres_unidos=only.single.graphs(1:nrow(distance.matrix), nodos_singletons)
 
                   }
@@ -789,17 +784,13 @@ mst.knn<-function(distance.matrix, k.user){
 
                  return(resultados)
 
-      #}else{
-      #  cat("Error. You should be specify a object of class matrix o dataframe with identical names of rows and columns")
-     # }
-
     }else{
-      stop("You should be specify a distance object of class matrix o dataframe with equal numbers of rows and columns")
+      stop("You should specify a distance object of class matrix or dataframe with equal numbers of rows and columns")
     }
 
   }else{
 
-    stop("You should specify a distance object of class matrix o dataframe")
+    stop("You should specify a distance object of class matrix or dataframe.")
 
   }
 

@@ -1,4 +1,4 @@
-#' Budding Yeast dataset of gene expression level
+#' Budding Yeast dataset
 #'
 #' @description It contains the expression levels of 2467 genes on 79 samples corresponding to 8 different experiments of the budding yeast: alpha factor (18 samples), cdc15 (15 samples), cold shock (4 samples), diauxic shift (7 samples), DTT shock (4 samples), elutriation (14 samples), heat shock (6 samples) and sporulation (11 samples).
 #'
@@ -8,7 +8,7 @@
 #'
 #' @details Once the data set is loaded, it can be accessed as an object of class dataframe called \code{dsyeastexpression}.
 #'
-#' @format An data frame of type distance matrix with 2467 rows and 79 columns.
+#' @format An data frame with 2467 rows and 79 columns.
 #'
 #' @source \url{http://www.pnas.org/content/suppl/1998/12/08/95.25.14863.DC1/3917data.xls}
 #'

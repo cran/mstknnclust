@@ -13,8 +13,8 @@ generate.results(g_clusters, distance.matrix)
 }
 \value{
 A list with the elements
-\item{k}{Number of cluster of the solution.}
-\item{cluster}{A named vector of integers of size n with values in range \code{1:k}, representing the cluster to which each object is assigned.}
+\item{cnumber}{A numeric value representing the number of clusters of the solution.}
+\item{cluster}{A named vector of integers of size n with values in range \code{1:cnumber}, representing the cluster to which each object is assigned.}
 \item{partition}{A partition matrix order by cluster where are shown the objects and the cluster where they are assigned.}
 \item{csize}{A vector of size k with the cardinality of each cluster in the solution.}
 \item{network}{An object of class "igraph" as a network representing the clustering solution.}

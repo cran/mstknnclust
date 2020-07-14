@@ -4,26 +4,26 @@
 \alias{generate.knn}
 \title{Generates a kNN graph}
 \usage{
-generate.knn(edges.complete.graph, k.user)
+generate.knn(edges.complete.graph, suggested.k)
 }
 \arguments{
-\item{edges.complete.graph}{A object of class "data.frame" with three columns (\emph{from}, \emph{to}, \emph{costs}) representing the edges costs of a complete graph.}
+\item{edges.complete.graph}{A object of class "data.frame" with three columns (\emph{object_i}, \emph{object_j}, \emph{d_ij}) representing the distance \emph{d_ij} between \emph{object_i} and \emph{object_j}.}
 
-\item{k.user}{A numeric value representing the number of nearest neighbor to consider to generate the \emph{k}NN graph.}
+\item{suggested.k}{It is an optional argument. A numeric value representing the suggested number of \emph{k}-nearest neighbor to consider to generate the \emph{k}NN graph.}
 }
 \value{
 A list with the elements
-\item{edges.knn.graph}{A object of class "data.frame" with three columns (\emph{from}, \emph{to}, \emph{costs}) representing the edges costs forming the kNN graph.}
+\item{edges.knn.graph}{A object of class "data.frame" with three columns (\emph{object_i}, \emph{object_j}, \emph{d_ij}) representing the \emph{d_ij} between \emph{object_i} and \emph{object_j} that are part of the \emph{k}NN graph.}
 \item{knn.graph}{A object of class "igraph" which is the \emph{k}-Nearest Neighbors (kNN) graph generated.}
 \item{k}{The \emph{k} value determined by the definition.}
 }
 \description{
-This function generates the \emph{k}-Nearest Neighbors (kNN) graph which is a subgraph contains edges between nodes if, and only if, they are one of the \emph{k} nearest neighbors considering the edges costs.
+This function generates the \emph{k}-Nearest Neighbors (kNN) graph which is a subgraph contains edges between nodes if, and only if, they are one of the \emph{k} nearest neighbors considering the edges costs (distances). Each node represents an object of the complete graph.
 }
 \details{
 During its generation, the \emph{k} value is automatically determined by the definition:
-\deqn{k = min{\lfloor \ln(|nodes.list|) \rfloor; min k |  kNN  is connected; k.user }}
-If \emph{k.user} parameter is not provided, it is not considered by the definition.
+\deqn{k = min{\lfloor \ln(|nodes.list|) \rfloor; min k |  kNN  is connected; suggested.k }}
+If \emph{suggested.k} parameter is not provided, it is not considered by the definition.
 }
 \examples{
 
@@ -35,10 +35,10 @@ x <- matrix(runif(n*m, min = -5, max = 10), nrow=n, ncol=m)
 
 ##Computes a distance matrix of x.
 
-library("amap")
-d <- base::as.matrix(amap::Dist(x, method="euclidean"))
+library("stats")
+d <- base::as.matrix(stats::dist(x, method="euclidean"))
 
-##Generates complete graph (CG) without k.user parameter
+##Generates complete graph (CG) without suggested.k parameter
 
 cg <- generate.complete.graph(1:nrow(x),d)
 
@@ -47,20 +47,20 @@ knn <- generate.knn(cg)
 
 ##Visualizing kNN graph
 plot(knn$knn.graph,
-main=paste("kNN \\n k=", knn$k, sep=""))
+main=paste("kNN \n k=", knn$k, sep=""))
 
 
 
-##Generates complete graph (CG) with k.user parameter
+##Generates complete graph (CG) with suggested.k parameter
 
 cg <- generate.complete.graph(1:nrow(x),d)
 
 ##Generates kNN graph
-knn <- generate.knn(cg, k.user=4)
+knn <- generate.knn(cg, suggested.k=4)
 
 ##Visualizing kNN graph
 plot(knn$knn.graph,
-main=paste("kNN \\n k=", knn$k, sep=""))
+main=paste("kNN \n k=", knn$k, sep=""))
 }
 \author{
 Mario Inostroza-Ponta, Jorge Parraga-Alava, Pablo Moscato
