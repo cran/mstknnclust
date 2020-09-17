@@ -10,7 +10,7 @@
 #'
 #' @format An data frame with 2467 rows and 79 columns.
 #'
-#' @source \url{http://www.pnas.org/content/suppl/1998/12/08/95.25.14863.DC1/3917data.xls}
+#' @source \url{https://www.pnas.org/content/suppl/1998/12/08/95.25.14863.DC1/3917data.xls}
 #'
 #' @references M. B. Eisen, P. T. Spellman, P. O. Brown, and D. Botstein. (1998). Cluster analysis and display of genome-wideexpression patterns.Proceedings of the National Academy of Sciences, 95(25):14863–14868
 #'

@@ -4,12 +4,12 @@
 \alias{mst.knn}
 \title{Performs the MST-kNN clustering algorithm}
 \usage{
-mst.knn(distance.matrix, num.cluster)
+mst.knn(distance.matrix, suggested.k)
 }
 \arguments{
 \item{distance.matrix}{A numeric matrix or data.frame with equals numbers of rows and columns representing distances between objects to group.}
 
-\item{num.cluster}{A numeric value representing the suggested number of cluster to yield. It is an optional argument. Note that, due to the algorithm operation, this number may be different at the end of the algorithm execution.}
+\item{suggested.k}{It is an optional argument. A numeric value representing the suggested number of k-nearest neighbors to consider during the generating the kNN graph. Note that, due to the algorithm operation, this number may be different during the algorithm execution.}
 }
 \value{
 A list with the elements
@@ -37,6 +37,7 @@ library("mstknnclust")
 ##Generates a data matrix of dimension 100X15
 
 n=100; m=15
+
 x <- matrix(runif(n*m, min = -5, max = 10), nrow=n, ncol=m)
 
 ##Computes a distance matrix of x.

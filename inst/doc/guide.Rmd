@@ -1,5 +1,5 @@
 ---
-title: "A quick guide of *mstknnclust* package"
+title: "A quick guide of mstknnclust package"
 author: "Mario Inostroza-Ponta (mario.inostroza@usach.cl), Jorge Parraga-Alava (jorge.parraga@usach.cl), Pablo Moscato (pablo.moscato@newcastle.edu.au)"
 date: "`r format(Sys.time(), '%d %b %Y')`"
 output:
@@ -20,7 +20,7 @@ Clustering is a common data mining task commonly used to reveal structures hidde
 
 One of the clustering algorithms within the *graph-based* approach is the **MST-kNN** [@mario]. It uses two proximity graphs: *minimum spanning tree (MST)* and *k nearest neighbor (kNN)*. They can model the data and highlight the more important relationships between the objects of the data. MST-kNN requires minimal user intervention due to the automatic selection of the number of clusters. Such a situation is adequate in scenarios where the structure of the data is unknown.
 
-This document gives a quick guide of the `mstknnclust` package (version 0.3.0). It corresponds to the implementation of the MST-kNN clustering algorithm. For further details to see `help(package="mstknnclust")`. If you use this R package do not forget to include the references provided by `citation("mstknnclust")`.
+This document gives a quick guide of the `mstknnclust` package (version 0.3.1). It corresponds to the implementation of the MST-kNN clustering algorithm. For further details to see `help(package="mstknnclust")`. If you use this R package do not forget to include the references provided by `citation("mstknnclust")`.
 
 
 ## How does MST-kNN clustering works?
@@ -40,6 +40,14 @@ k= \min \bigg\{ \lfloor \ln(n)\rfloor ; \min k \mid \text{kNN graph is connected
 4. Performs the **intersection** of the edges of the MST and kNN graphs. It will produce a graph with $cc\geq1$ connected components 
 5. Evaluates the numbers of connected components (cc) in the graph produced. If $cc=1$ the algorithm stops. If $cc>1$, the steps 1-4 are recursively applied in each of the connected components of the graph. 
 6. Finally, when the algorithm stops in step 5 in any recursion, it performs the **union** of the graphs produced by the application of the MST-kNN algorithm in each recursion.
+
+
+## Installation instructions
+
+The **mstknnclust** package requires **igraph** package to work and to visualize some graphs as networks. This package is included as a mandatory dependency, so users who install the mstknnclust package will have them automatically. To install the `mstknnclust` package use `install.packages("mstknnclust")`.
+
+
+
 
 ## Example on Indo-European languages data set
 

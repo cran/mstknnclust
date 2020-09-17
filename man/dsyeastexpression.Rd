@@ -8,7 +8,7 @@
 An data frame with 2467 rows and 79 columns.
 }
 \source{
-\url{http://www.pnas.org/content/suppl/1998/12/08/95.25.14863.DC1/3917data.xls}
+\url{https://www.pnas.org/content/suppl/1998/12/08/95.25.14863.DC1/3917data.xls}
 }
 \usage{
 data(dsyeastexpression)

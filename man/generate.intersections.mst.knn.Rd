@@ -4,14 +4,14 @@
 \alias{generate.intersections.mst.knn}
 \title{Performs the intersections between MST y kNN graphs}
 \usage{
-generate.intersections.mst.knn(nodes.list, distance.matrix, num.cluster)
+generate.intersections.mst.knn(nodes.list, distance.matrix, suggested.k)
 }
 \arguments{
 \item{nodes.list}{A vector with a subset of objects (nodes) of the data matrix for which the MST y kNN graphs must be generated.}
 
 \item{distance.matrix}{A distance matrix between each pair of elements in \code{nodes.list}. It is used as the edges costs to generate MST y kNN graphs.}
 
-\item{num.cluster}{A numeric value representing the number of nearest neighbor to consider to generate the \emph{k}NN graph.}
+\item{suggested.k}{A numeric value representing the number of nearest neighbors to consider to generate the \emph{k}NN graph.}
 }
 \value{
 A list with the elements

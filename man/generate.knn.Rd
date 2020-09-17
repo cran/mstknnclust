@@ -9,7 +9,7 @@ generate.knn(edges.complete.graph, suggested.k)
 \arguments{
 \item{edges.complete.graph}{A object of class "data.frame" with three columns (\emph{object_i}, \emph{object_j}, \emph{d_ij}) representing the distance \emph{d_ij} between \emph{object_i} and \emph{object_j}.}
 
-\item{suggested.k}{It is an optional argument. A numeric value representing the suggested number of \emph{k}-nearest neighbor to consider to generate the \emph{k}NN graph.}
+\item{suggested.k}{It is an optional argument. A numeric value representing the suggested number of \emph{k}-nearest neighbors to consider to generate the \emph{k}NN graph.}
 }
 \value{
 A list with the elements

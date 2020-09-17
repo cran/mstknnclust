@@ -93,7 +93,7 @@ generate.complete.graph <-function(nodes.list, distance.matrix){
 #'
 #' @description This function generates the \emph{k}-Nearest Neighbors (kNN) graph which is a subgraph contains edges between nodes if, and only if, they are one of the \emph{k} nearest neighbors considering the edges costs (distances). Each node represents an object of the complete graph.
 #' @param edges.complete.graph A object of class "data.frame" with three columns (\emph{object_i}, \emph{object_j}, \emph{d_ij}) representing the distance \emph{d_ij} between \emph{object_i} and \emph{object_j}.
-#' @param suggested.k  It is an optional argument. A numeric value representing the suggested number of \emph{k}-nearest neighbor to consider to generate the \emph{k}NN graph.
+#' @param suggested.k  It is an optional argument. A numeric value representing the suggested number of \emph{k}-nearest neighbors to consider to generate the \emph{k}NN graph.
 #' @details During its generation, the \emph{k} value is automatically determined by the definition:
 #' \deqn{k = min{\lfloor \ln(|nodes.list|) \rfloor; min k |  kNN  is connected; suggested.k }}
 #' If \emph{suggested.k} parameter is not provided, it is not considered by the definition.
@@ -447,14 +447,14 @@ compute.costs.proximity.graph=function(graph.edges, distance.matrix){
 #' @description This function performs a graph partition based on the intersection of the edges of two proximity graphs: MST and kNN.
 #' @param nodes.list A vector with a subset of objects (nodes) of the data matrix for which the MST y kNN graphs must be generated.
 #' @param distance.matrix A distance matrix between each pair of elements in \code{nodes.list}. It is used as the edges costs to generate MST y kNN graphs.
-#' @param num.cluster A numeric value representing the number of nearest neighbor to consider to generate the \emph{k}NN graph.
+#' @param suggested.k A numeric value representing the number of nearest neighbors to consider to generate the \emph{k}NN graph.
 #' @return A list with the elements
 #' \item{cc}{A numeric value representing the number of connected components (cc) generated after graphs intersection.}
 #' \item{subgraphs}{ A list where each item contains the nodes of the connected components (cc) generated.}
 #' \item{ccgraph}{A object of class "igraph" which is a network with each connected components (cc) generated.}
 #' @author  Mario Inostroza-Ponta, Jorge Parraga-Alava, Pablo Moscato
 #' @keywords internal
-generate.intersections.mst.knn <- function(nodes.list, distance.matrix, num.cluster){
+generate.intersections.mst.knn <- function(nodes.list, distance.matrix, suggested.k){
 
 
   #            Order nodes.list to  edges tin complete graphs be ordered.
@@ -479,7 +479,7 @@ generate.intersections.mst.knn <- function(nodes.list, distance.matrix, num.clus
             ###grafo_mst_costo_total=compute.total.costs.mst(as.matrix(grafo_mst_aristas[,1:2]), distance.matrix)
 
             #            Generate kNN graph                #
-            calcula_knn=generate.knn(edges.complete.graph, num.cluster)
+            calcula_knn=generate.knn(edges.complete.graph, suggested.k)
             #grafo_knn_aristas=calcula_knn$edges.knn.graph
             grafo_knn_arbol=calcula_knn$knn.graph
             ###grafo_knn_costo_total=compute.total.costs.knn(grafo_knn_aristas, distance.matrix)
@@ -597,7 +597,7 @@ return(list(network=g_clusters, cnumber=final_grupos_num_clusters, cluster= vect
 #'
 #' To create MST, \emph{Prim} algorithm is used. To create \emph{k}NN,  \code{distance.matrix} passed as input is considered.
 #' @param distance.matrix  A numeric matrix or data.frame with equals numbers of rows and columns representing distances between objects to group.
-#' @param num.cluster A numeric value representing the suggested number of cluster to yield. It is an optional argument. Note that, due to the algorithm operation, this number may be different at the end of the algorithm execution.
+#' @param suggested.k It is an optional argument. A numeric value representing the suggested number of k-nearest neighbors to consider during the generating the kNN graph. Note that, due to the algorithm operation, this number may be different during the algorithm execution.
 #' @details
 #' To see more details of how MST-kNN works refers to the \href{../doc/guide.html}{quick guide}.
 #'
@@ -619,6 +619,7 @@ return(list(network=g_clusters, cnumber=final_grupos_num_clusters, cluster= vect
 #' ##Generates a data matrix of dimension 100X15
 #'
 #' n=100; m=15
+#' 
 #' x <- matrix(runif(n*m, min = -5, max = 10), nrow=n, ncol=m)
 #'
 #' ##Computes a distance matrix of x.
@@ -639,7 +640,7 @@ return(list(network=g_clusters, cnumber=final_grupos_num_clusters, cluster= vect
 #'      main=paste("MST-kNN \n Clustering solution \n Number of clusters=",results$cnumber,sep="" ))
 #'
 #' @export
-mst.knn <- function(distance.matrix, num.cluster){
+mst.knn <- function(distance.matrix, suggested.k){
 
   #      Validation of inputs     #
 
@@ -659,7 +660,7 @@ mst.knn <- function(distance.matrix, num.cluster){
                   subgraphs=1:nrow(distance.matrix)
 
                   #            Initialization               #
-                  inicio=generate.intersections.mst.knn(subgraphs, distance.matrix, num.cluster)
+                  inicio=generate.intersections.mst.knn(subgraphs, distance.matrix, suggested.k)
 
                   #          Recursivity on each CC           #
                   nodos_singletons=list()
@@ -699,7 +700,7 @@ mst.knn <- function(distance.matrix, num.cluster){
                                   for(y in 1:length(subgraphs)){
 
                                     #           Perform intersections on each subgraph with cc>1
-                                    componente=generate.intersections.mst.knn(subgraphs[[y]], distance.matrix, num.cluster)
+                                    componente=generate.intersections.mst.knn(subgraphs[[y]], distance.matrix, suggested.k)
 
                                     #           Store possible singletons nodes obtained after re-run mst.knn
                                     nodos_singletons=c(nodos_singletons, Filter(function(x) length(x)<=1, componente$subgraphs))
