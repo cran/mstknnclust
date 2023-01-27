@@ -23,7 +23,7 @@ knitr::kable(tail(results$partition,10), row.names = FALSE)
 
 ## ---- fig.align = "center", fig.height = 7, fig.width = 7---------------------
 library("igraph")
-igraph::V(results$network)$label.cex <- seq(0.6,0.6,length.out=2)
+igraph::V(results$network)$label.cex <- seq(0.6,0.6,length.out=vcount(results$network))
 
 plot(results$network, vertex.size=8, 
      vertex.color=igraph::clusters(results$network)$membership, 
